@@ -1118,7 +1118,7 @@ def parse_arguments():
         description = (
             'Design probes against an input fasta according to design '
             'parameters, then pass through several filters to remove '
-            'off-target enrichment (nt filter) and probe redundancy '
+            'off-target enrichment (id filter) and probe redundancy '
             '(self filter)'
         )
     )
@@ -1338,7 +1338,7 @@ def main():
             print(f'{len(id_drop_probes)} probes removed during id filter')
             last_step_fasta = f'{prefix}_id_filter.fasta'
         else:
-            print('No filter specified. Skipping to redundancy filter')
+            print('No id filter specified. Skipping to redundancy filter')
             last_step_fasta = f'{prefix}_basic_filter.fasta'
     else:
         print('Probes seem to have already undergone BLAST id filter, '
