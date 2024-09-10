@@ -41,13 +41,21 @@ conda env create -f CARPDM/carpdm_env.yml
 This will install the following dependencies:
 
 [Biopython v1.81](https://biopython.org/docs/1.81/)
+
 [BLAST v2.15.0](https://blast.ncbi.nlm.nih.gov/Blast.cgi)
+
 [Matplotlib v3.8.1](https://matplotlib.org/)
+
 [Numpy v1.26.0](https://numpy.org/)
+
 [Pandas v2.1.3](https://pandas.pydata.org/)
+
 [Primer3-py v2.0](https://libnano.github.io/primer3-py/)
+
 [Python v3.11.6](https://www.python.org/)
+
 [Seaborn v0.13.0](https://seaborn.pydata.org/index.html)
+
 [TQDM v4.66.1](https://github.com/tqdm/tqdm)
 
 Activate the conda environment before running the script
