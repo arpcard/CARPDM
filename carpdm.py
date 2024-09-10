@@ -14,7 +14,6 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import subprocess
-# import pytaxonkit
 import argparse
 import primer3
 import shlex
