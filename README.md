@@ -2,7 +2,7 @@
 
 ## The Comprehensive Antibiotic Resistance Probe Design Machine
 
-This program designs probesets for targeted enrichment of the input sequences from DNA sequencing libraries. If desired, it can also modify these sequences to be an oligo pool, which is used for the in-house synthesis of the probeset, vastly reducing cost. Finally, it outputs several analysis graphics and summary statistics to guage the effectivenes of the probe design strategy.
+This program uses BLASTN to design probesets for targeted enrichment of the input sequences from DNA sequencing libraries. If desired, it can also modify these sequences to be an oligo pool, which is used for the in-house synthesis of the probeset, vastly reducing cost. Finally, it outputs several analysis graphics and summary statistics to guage the effectivenes of the probe design strategy.
 
 ## License 
 
@@ -14,7 +14,7 @@ Hackenberger et al. 2024. CARPDM: cost-effective antibiotic resistome profiling 
 
 ## Support & Bug Reports
 
-Please create a [github issue](https://github.com/arpcard/CARPDM/issues).
+Please create a [github issue](https://github.com/arpcard/CARPDM/issues) for any problems with the program.
 
 You can email the CARD curators or developers directly at card@mcmaster.ca.
 
@@ -32,7 +32,7 @@ Clone the github repository or download the carpdm_env.yml file.
 git clone https://github.com/arpcard/CARPDM.git
 ```
 
-Create a conda environment from the carpdm._env.yml file.
+Create a conda environment from the carpdm_env.yml file.
 
 ```console
 conda env create -f CARPDM/carpdm_env.yml
@@ -112,5 +112,88 @@ options:
                         show program's version number and exit
 ```
 
+We recommend a test run using the clinically_relevant_amr.fna file. Optionally, you might include a fasta file or BLAST database against which to filter. When filtering against the *E. coli* K12 reference genome, this command took just over 30 minutes of wall clock time to fully execute.
+
+```console
+carpdm.py -i clinically_relevant_amr.fna -p 20000 -t 16 -f /path/to/filter/fasta.fna
+```
+
 ## CARPDM Output
 
+Running the carpdm.py script as above will result in the following output structure, sorted here by creation order. Note that running with the --clean flag will only output the final probeset, oligo pool, amplification primers, and analysis plots.
+
+```console
+probe_design/
+├── probes_input_no_comp.fna
+|     Input fasta with complementary sequences between targets removed     
+├── probes_basic_filter.fna
+|     Naive tiled probes. Only unique probes with no perfect complements that
+|     satisfy Tm requirements and lack ambiguous bases are included. If an
+|     o-pool is being constructed, probes with an LguI cut site are also
+|     removed.
+├── probes_id_blast.txt
+|     BLASTN results for basic filter probes against negative id filter
+|     fasta/db (if supplied). 
+├── probes_id_filter.fna
+|     Basic filter probes that have <(probe_length * 0.625) identities against
+|     anything in the id filter fasta/db (if supplied).
+├── probes_self_blast.txt
+|     BLASTN results for the basic filter or, if present, id filter probes
+|     against themselves.
+├── probes_self_filter.fna
+|     Basic filter or, if present, id filter probes with redundant members
+|     removed. The degree of redundancy maintained in the set is determined by
+|     the probe number cutoff specified when the program is called. Included
+|     with --clean.
+├── probes_o_pool_amp_primers.fna
+|     PCR amplification primers for the oligo pool. Included with --clean.
+├── probes_o_pool_oligos.fna
+|     Final oligo pool sequences, to be ordered if synthesizing probes
+|     in-house. Included with --clean.
+├── probes_final_blast.xml
+|     BLASTN results of the probes against the input sequences, used to
+|     construct summary data and plots.
+├── probes_target_info.csv
+|     Summary statistics of target and associated coverage by probes in set.
+├── probes_target_probe_pairs.csv
+|     Target:Probe pairs, each line is a probe that aligns to that target.
+├── probes_probe_info.csv
+|     Summary statistics of probes in set.
+├── probes_count_info.csv
+|     Number of probes remaining after each filtering step.
+├── probes_max_id.txt
+|     Maximum number of identites remaining between probes after the
+|     redundancy filter.
+└── probes_plots ( All included with --clean)
+    ├── individual_target_coverages
+    |     Directory containing coverage plots of all sequences used as input.
+    ├── probe_gc.png
+    ├── probe_gc.svg
+    |     Violin plot showing probe GC content distribution.
+    ├── probe_tm.png
+    ├── probe_tm.svg
+    |     Violin plot showing probe melt temp distribution.
+    ├── probe_num_targets.png
+    ├── probe_num_targets.svg
+    |     Violin plot showing the distribution of the number of input targets
+    |     per probe.
+    ├── target_len.png
+    ├── target_len.svg
+    |     Violin plot showing target length distribution.
+    ├── target_gc.png
+    ├── target_gc.svg
+    |     Violin plot showing target GC content distribution.
+    ├── target_coverage_prop.png
+    ├── target_coverage_prop.svg
+    |     Violin plot showing target coverage proportion distribution.
+    ├── target_probe_count.png
+    ├── target_probe_count.svg
+    |     Violin plot showing distribution of the number of probes per target.
+    ├── target_coverage_depth.png
+    ├── target_coverage_depth.svg
+    |     Violin plot showing distribution of the target coverage depth.
+    ├── target_coverage_stdev.png
+    └── target_coverage_stdev.svg
+          Violin plot showing distribution of the target coverage standard
+          deviation.
+```

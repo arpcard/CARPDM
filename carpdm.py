@@ -152,7 +152,7 @@ def remove_complementary_targets(
         input_fasta: list[SeqRecord],
         output_dir: str,
         prefix: str,
-        header: list,
+        header: list[str],
         num_threads: int,
         probe_length: int
 ) -> None:
@@ -172,7 +172,7 @@ def remove_complementary_targets(
             f'blastn -outfmt "{outfmt}" -num_threads {num_threads} '
             f'-db {database}')
         blast_output = subprocess.run(command, text = True, input = str_fasta,
-                                    capture_output = True).stdout
+                                      capture_output = True).stdout
         self_blast_df = pd.read_csv(StringIO(blast_output), sep = '\t',
                                     names = header)
         # Pull out the sequence id with the most hits
@@ -949,7 +949,7 @@ def find_remaining_ID(
 def count_probes(prefix: str) -> None:
     '''Records the number of probes after each filter'''
     # Find fastas
-    fasta_list = [file for file in os.listdir() if file.endswith('.fasta')]
+    fasta_list = [file for file in os.listdir() if file.endswith('.fna')]
     # Instantiate summary df
     col_names = ['filter', 'count']
     count_df = pd.DataFrame(columns = col_names)
@@ -1105,7 +1105,7 @@ def clean(
 ) -> None:
     '''Remove unnecessary files when --clean is specified'''
     all_files = [f'{output_dir}/{file}' for file in os.listdir(output_dir)]
-    to_remove = [f for f in all_files if not f.endswith('self_filter.fasta')
+    to_remove = [f for f in all_files if not f.endswith('self_filter.fna')
                  and not f.endswith('plots') and not 'o_pool' in f]
 
     for file in to_remove:
@@ -1152,10 +1152,13 @@ def parse_arguments():
         'during basic filter. Default = 50'
     )
     parser.add_argument(
-        '-b', '--basename', help = 'File basename', default = 'probes'
+        '-b', '--basename',
+        help = 'File basename. Default = probes',
+        default = 'probes'
     )
     parser.add_argument(
-        '-o', '--output_dir', help = 'Output directory',
+        '-o', '--output_dir',
+        help = 'Output directory. Default = probe_design',
         default = 'probe_design'
     )
     filter_group = parser.add_mutually_exclusive_group()
@@ -1249,7 +1252,7 @@ def main():
               'skipping to basic filter')
 
     ## Basic Filters
-    if not os.path.exists(f'{prefix}_basic_filter.fasta'):
+    if not os.path.exists(f'{prefix}_basic_filter.fna'):
         print('Beginning probe construction')
         probes = make_probes(
             design_fasta = f'{prefix}_input_no_comp.fna',
@@ -1265,17 +1268,17 @@ def main():
             filtered_probes = LguI_filter(filtered_probes)
         basic_probe_num = len(filtered_probes)
         print(f'{basic_probe_num} probes remaining after basic filter')
-        write_to_file(filtered_probes, f'{prefix}_basic_filter.fasta')
+        write_to_file(filtered_probes, f'{prefix}_basic_filter.fna')
     else:
         print('Probes seem to have already undergone basic filter, '
               'skipping to BLAST id filter')
-        basic_probe_num = count_seqs(f'{prefix}_basic_filter.fasta')
+        basic_probe_num = count_seqs(f'{prefix}_basic_filter.fna')
         
 
 
     ## Blast ID Filter
     # If the id filter hasn't already been done
-    if not os.path.exists(f'{prefix}_id_filter.fasta'):
+    if not os.path.exists(f'{prefix}_id_filter.fna'):
         # If there's a fasta to filter against, make a blast database
         if filter_fasta:
             make_blast_db(
@@ -1294,7 +1297,7 @@ def main():
                 # Reinstantiate header, start, end positions and pid no longer matter
                 header = 'qseqid sseqid length nident staxid sstrand sskingdom'.split()
                 blast_id(
-                    input_fasta = f'{prefix}_basic_filter.fasta',
+                    input_fasta = f'{prefix}_basic_filter.fna',
                     blast_db = filter_db,
                     header = header,
                     num_threads = num_threads,
@@ -1313,7 +1316,7 @@ def main():
             else:
                 header = 'qseqid sseqid length nident'.split()
                 blast_id(
-                    input_fasta = f'{prefix}_basic_filter.fasta',
+                    input_fasta = f'{prefix}_basic_filter.fna',
                     blast_db = filter_db,
                     header = header,
                     num_threads = num_threads,
@@ -1329,27 +1332,27 @@ def main():
                     probe_len=probe_len
                 )
             filter_out_probes(
-            probe_fasta = f'{prefix}_basic_filter.fasta',
+            probe_fasta = f'{prefix}_basic_filter.fna',
             probes_to_drop = id_drop_probes,
-            output = f'{prefix}_id_filter.fasta'
+            output = f'{prefix}_id_filter.fna'
             )
             id_probe_num = basic_probe_num - len(id_drop_probes)
             print(f'{id_probe_num} probes remaining after id filter')
             print(f'{len(id_drop_probes)} probes removed during id filter')
-            last_step_fasta = f'{prefix}_id_filter.fasta'
+            last_step_fasta = f'{prefix}_id_filter.fna'
         else:
             print('No id filter specified. Skipping to redundancy filter')
-            last_step_fasta = f'{prefix}_basic_filter.fasta'
+            last_step_fasta = f'{prefix}_basic_filter.fna'
     else:
         print('Probes seem to have already undergone BLAST id filter, '
               'skipping to redundancy/complementarity filter')
-        last_step_fasta = f'{prefix}_id_filter.fasta'
+        last_step_fasta = f'{prefix}_id_filter.fna'
     id_probe_num = count_seqs(last_step_fasta)
 
 
     ## Complementarity/Redundancy Filter
     header = 'qseqid sseqid length nident sstrand'.split()
-    if not os.path.exists(f'{prefix}_self_filter.fasta'):
+    if not os.path.exists(f'{prefix}_self_filter.fna'):
         blast_self(
             input_fasta = last_step_fasta,
             header = header,
@@ -1373,7 +1376,7 @@ def main():
         filter_out_probes(
             probe_fasta = last_step_fasta,
             probes_to_drop = redundant_probes,
-            output = f'{prefix}_self_filter.fasta'
+            output = f'{prefix}_self_filter.fna'
         )
         red_probe_num = id_probe_num - len(redundant_probes)
         print(f'{red_probe_num} probes remaining after redundancy filter')
@@ -1381,7 +1384,7 @@ def main():
     else:
         print('Probes seem to have already undergone redundancy filter, '
               'skipping to amplification primer design and selection')
-        red_probe_num = count_seqs(f'{prefix}_self_filter.fasta')
+        red_probe_num = count_seqs(f'{prefix}_self_filter.fna')
 
     ############################ O-Pool Design #############################
 
@@ -1389,7 +1392,7 @@ def main():
     # The following scripts are only run if for_o_pool == true, they add
     # T7 and another primer sequence to each end for amplification
     if not no_o_pool and not os.path.exists(
-        f'{prefix}_o_pool_amp_primers.fasta'):
+        f'{prefix}_o_pool_amp_primers.fna'):
         # Added a 5'GC to T7 primer to bump up the Tm a little
         T7_primer = 'GCTAATACGACTCACTATAGGG'
         # Add terminal GC clamp and BspQI to second primer.
@@ -1406,7 +1409,7 @@ def main():
         )
         # Attach the T7 primer sequence to the 5' end of the probes
         attach_seq(
-            input_fasta = f'{prefix}_self_filter.fasta',
+            input_fasta = f'{prefix}_self_filter.fna',
             output = f'{prefix}_T7_probes_temp.fasta',
             leading_sequence = T7_primer
         )
@@ -1435,12 +1438,12 @@ def main():
         # probes with T7 primer attached, write to fasta
         attach_seq(
             input_fasta = f'{prefix}_T7_probes_temp.fasta',
-            output = f'{prefix}_o_pool_oligos.fasta',
+            output = f'{prefix}_o_pool_oligos.fna',
             lagging_sequence = primer_rev_comp
         )
         print('Finished constructing full o-pool sequences')
         # Write primer sequences to fasta
-        with open(f'{prefix}_o_pool_amp_primers.fasta', 'w') as outfile:
+        with open(f'{prefix}_o_pool_amp_primers.fna', 'w') as outfile:
             outfile.write(
                 f'>T7_primer\n'
                 f'{T7_primer}\n'
@@ -1457,7 +1460,7 @@ def main():
     if not os.path.exists(f'{prefix}_plots/target_coverage_stdev.svg'):
         print('Beginning blast analysis against input sequences')
         blast(
-            input_fasta = f'{prefix}_self_filter.fasta',
+            input_fasta = f'{prefix}_self_filter.fna',
             design_fasta = design_fasta,
             output = f'{prefix}_final_blast.xml'
         )
@@ -1465,7 +1468,7 @@ def main():
         # Construct summary dicts
         (coverage_dict, probe_count_dict, target_count_dict,
         target_gc_dict, target_seq_dict) = make_dicts(
-            probe_fasta = f'{prefix}_self_filter.fasta',
+            probe_fasta = f'{prefix}_self_filter.fna',
             design_fasta = design_fasta
         )
 
@@ -1490,14 +1493,14 @@ def main():
             prefix = prefix
         )
         parse_probes(
-            probe_fasta = f'{prefix}_self_filter.fasta',
+            probe_fasta = f'{prefix}_self_filter.fna',
             probe_count_dict = probe_count_dict,
             prefix = prefix
         )
         # Find the max remaining identities between probes
         print('Summary csv files created, finding remaining identities')
         find_remaining_ID(
-            probe_set = f'{prefix}_self_filter.fasta',
+            probe_set = f'{prefix}_self_filter.fna',
             self_blast = f'{prefix}_self_blast.txt',
             header = header,
             prefix = prefix
