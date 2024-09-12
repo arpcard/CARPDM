@@ -6,7 +6,7 @@ This program uses BLASTN to design probesets for targeted enrichment of the inpu
 
 ## Pre-Calculated Probe Sets
 
-Targeted enrichment probesets designed for each release of the Comprehensive Antibiotic Resistance Database are available [here](https://card.mcmaster.ca/download).
+Targeted enrichment probesets designed for each release of the Comprehensive Antibiotic Resistance Database (CARD) are available [here](https://card.mcmaster.ca/download).
 
 ## License 
 
