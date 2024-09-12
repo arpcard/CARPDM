@@ -14,13 +14,11 @@ Use or reproduction of these materials, in whole or in part, by any commercial o
 
 ## Citation
 
-Hackenberger *et al*. 2024. CARPDM: cost-effective antibiotic resistome profiling of metagenomic samples using targeted enrichment. [bioRxiv 2024.03.27.587061](https://www.biorxiv.org/content/10.1101/2024.03.27.587061v1)
+Hackenberger *et al*. 2024. CARPDM: cost-effective antibiotic resistome profiling of metagenomic samples using targeted enrichment. [bioRxiv 2024.03.27.587061](https://www.biorxiv.org/content/10.1101/2024.03.27.587061v1).
 
 ## Support & Bug Reports
 
-Please create a [github issue](https://github.com/arpcard/CARPDM/issues) for any problems with the program.
-
-You can email the CARD curators or developers directly at card@mcmaster.ca.
+Please create a [github issue](https://github.com/arpcard/CARPDM/issues) to report problems or post queries about CARPDM. Alternatively, you can email the CARD curators or developers directly at card@mcmaster.ca.
 
 *******************************************************************************
 
