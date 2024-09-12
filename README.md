@@ -142,7 +142,7 @@ carpdm.py -i clinically_relevant_amr.fna -p 20000 -t 16 -f /path/to/filter/fasta
 
 ## CARPDM Output
 
-Running the *carpdm.py* script as above will result in the following output structure, sorted here by creation order. Note that running with the *--clean flag* will only output the final probeset, oligo pool, amplification primers, and analysis plots.
+Running the *carpdm.py* script as above will result in the following output structure, sorted here by creation order. Note that running with the *--clean* flag will only output the final probeset, oligo pool, amplification primers, and analysis plots.
 
 ```console
 probe_design/
