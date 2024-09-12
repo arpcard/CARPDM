@@ -10,7 +10,7 @@ Targeted enrichment probesets designed for each release of the Comprehensive Ant
 
 ## License 
 
-Use or reproduction of these materials, in whole or in part, by any commercial organization whether or not for non-commercial (including research) or commercial purposes is prohibited, except with written permission of McMaster University. Commercial uses are offered only pursuant to a written license and user fee. To obtain permission and begin the licensing process, see the [CARD website](https://card.mcmaster.ca/about).
+Use or reproduction of these materials, in whole or in part, by any commercial organization whether or not for non-commercial (including research) or commercial purposes is prohibited, except with written permission of McMaster University. For full details see [CARD website](https://card.mcmaster.ca/about).
 
 ## Citation
 
