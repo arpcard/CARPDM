@@ -4,9 +4,9 @@
 
 This program uses BLASTN to design probesets for targeted enrichment of DNA sequencing libraries. If desired, it can also modify these sequences to be an oligo pool, which is used for the in-house synthesis of the probeset, reducing cost. Finally, it outputs several analysis graphics and summary statistics to guage the effectivenes of the probe design strategy.
 
-### Pre-Calculated Probe Sets
+### Pre-Calculated Probe Sets & Laboratory Protocols
 
-Targeted enrichment probesets designed for each release of the Comprehensive Antibiotic Resistance Database (CARD) are available [here](https://card.mcmaster.ca/download).
+Targeted enrichment probesets designed for each release of the Comprehensive Antibiotic Resistance Database (CARD), plus probe synthesis and library enrichment protocols, are available [here](https://card.mcmaster.ca/download).
 
 ## License 
 
