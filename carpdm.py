@@ -830,7 +830,7 @@ def parse_blast(
                             pad_left = start - 1
                             pad_right = target_len - (pad_left + hsp_length)
                         else:
-                            pad_right = target_len - start
+                            pad_right = start - 1
                             pad_left = target_len - (pad_right + hsp_length)
                         padded_array = np.pad(
                             match_array,
