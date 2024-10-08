@@ -2,21 +2,23 @@
 
 ## The Comprehensive Antibiotic Resistance Probe Design Machine
 
-This program uses BLASTN to design probesets for targeted enrichment of the input sequences from DNA sequencing libraries. If desired, it can also modify these sequences to be an oligo pool, which is used for the in-house synthesis of the probeset, vastly reducing cost. Finally, it outputs several analysis graphics and summary statistics to guage the effectivenes of the probe design strategy.
+This program uses BLASTN to design probesets for targeted enrichment of DNA sequencing libraries. If desired, it can also modify these sequences to be an oligo pool, which is used for the in-house synthesis of the probeset, reducing cost. Finally, it outputs several analysis graphics and summary statistics to guage the effectivenes of the probe design strategy.
+
+### Pre-Calculated Probe Sets & Laboratory Protocols
+
+Targeted enrichment probesets designed for each release of the Comprehensive Antibiotic Resistance Database (CARD), plus probe synthesis and library enrichment protocols, are available [here](https://card.mcmaster.ca/download).
 
 ## License 
 
-Use or reproduction of these materials, in whole or in part, by any commercial organization whether or not for non-commercial (including research) or commercial purposes is prohibited, except with written permission of McMaster University. Commercial uses are offered only pursuant to a written license and user fee. To obtain permission and begin the licensing process, see the [CARD website](https://card.mcmaster.ca/about)
+Use or reproduction of these materials, in whole or in part, by any commercial organization whether or not for non-commercial (including research) or commercial purposes is prohibited, except with written permission of McMaster University. For full details see [CARD website](https://card.mcmaster.ca/about).
 
 ## Citation
 
-Hackenberger et al. 2024. CARPDM: cost-effective antibiotic resistome profiling of metagenomic samples using targeted enrichment. bioRxiv 2024.03.27.587061
+Hackenberger *et al*. 2024. CARPDM: cost-effective antibiotic resistome profiling of metagenomic samples using targeted enrichment. [bioRxiv 2024.03.27.587061](https://www.biorxiv.org/content/10.1101/2024.03.27.587061v1).
 
 ## Support & Bug Reports
 
-Please create a [github issue](https://github.com/arpcard/CARPDM/issues) for any problems with the program.
-
-You can email the CARD curators or developers directly at card@mcmaster.ca.
+Please create a [github issue](https://github.com/arpcard/CARPDM/issues) to report problems or post queries about CARPDM. Alternatively, you can email the CARD curators or developers directly at card@mcmaster.ca.
 
 *******************************************************************************
 
@@ -24,15 +26,15 @@ You can email the CARD curators or developers directly at card@mcmaster.ca.
 
 ### Dependencies via Conda
 
-If not already installed, follow the documentation to [install Miniconda](https://docs.anaconda.com/miniconda/)
+If not already installed, follow the documentation to [install Miniconda](https://docs.anaconda.com/miniconda/).
 
-Clone the github repository or download the carpdm_env.yml file.
+Clone the github repository or download the *carpdm_env.yml* file:
 
 ```console
 git clone https://github.com/arpcard/CARPDM.git
 ```
 
-Create a conda environment from the carpdm_env.yml file.
+Create a conda environment from the *carpdm_env.yml* file:
 
 ```console
 conda env create -f CARPDM/carpdm_env.yml
@@ -58,7 +60,7 @@ This will install the following dependencies:
 
 [TQDM v4.66.1](https://github.com/tqdm/tqdm)
 
-Activate the conda environment before running the script
+Activate the conda environment before running the script:
 
 ```console
 conda activate carpdm
@@ -68,15 +70,15 @@ conda activate carpdm
 
 ## Running the CARPDM script
 
-If desired, add the directory containing the carpdm.py script to your path by modifying your .bashrc file.
+If desired, add the directory containing the *carpdm.py* script to your path by modifying your *.bashrc* file.
 
-Add execute permissions to the carpdm.py script
+Add execute permissions to the *carpdm.py* script:
 
 ```console
 chmod a+x carpdm.py
 ```
 
-See the full help menu by running 
+See the full help menu by running:
 
 ```console
 carpdm.py --help
@@ -132,7 +134,7 @@ options:
                         show program's version number and exit
 ```
 
-We recommend a test run using the clinically_relevant_amr.fna file. Optionally, you might include a fasta file or BLAST database against which to filter. When filtering against the *E. coli* K12 reference genome, this command took just over 30 minutes of wall clock time to fully execute.
+We recommend a test run using the *clinically_relevant_amr.fna* file. Optionally, you might include a fasta file or BLAST database against which to filter. When filtering against the *E. coli* K12 reference genome, this command took just over 30 minutes of wall clock time to fully execute.
 
 ```console
 carpdm.py -i clinically_relevant_amr.fna -p 20000 -t 16 -f /path/to/filter/fasta.fna
@@ -140,7 +142,7 @@ carpdm.py -i clinically_relevant_amr.fna -p 20000 -t 16 -f /path/to/filter/fasta
 
 ## CARPDM Output
 
-Running the carpdm.py script as above will result in the following output structure, sorted here by creation order. Note that running with the --clean flag will only output the final probeset, oligo pool, amplification primers, and analysis plots.
+Running the *carpdm.py* script as above will result in the following output structure, sorted here by creation order. Note that running with the *--clean* flag will only output the final probeset, oligo pool, amplification primers, and analysis plots.
 
 ```console
 probe_design/
