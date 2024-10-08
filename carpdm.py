@@ -824,14 +824,9 @@ def parse_blast(
                         # it the same size as the corresponding
                         # target array.
                         hsp_length = match_array.size
-                        # If hsp strands aren't equivalent, indicates the
-                        # start position is on the opposite side.
-                        if hsp.strand[0] == hsp.strand[1]:
-                            pad_left = start - 1
-                            pad_right = target_len - (pad_left + hsp_length)
-                        else:
-                            pad_right = start - 1
-                            pad_left = target_len - (pad_right + hsp_length)
+                        # Pad array with zeros
+                        pad_left = start - 1
+                        pad_right = target_len - (pad_left + hsp_length)
                         padded_array = np.pad(
                             match_array,
                             (pad_left, pad_right),
