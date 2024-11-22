@@ -17,6 +17,7 @@ import subprocess
 import argparse
 import primer3
 import shlex
+import glob
 import os
 import re
 
@@ -76,7 +77,7 @@ def collapse_slices(
 
 def chop_record(
         input_record: SeqRecord,
-        slices: list[tuple[int, int]],
+        slices_to_rc: list[tuple[int, int]],
         probe_length: int
 ) -> list[SeqRecord]:
     '''Returns a list of SeqRecord objects that have been cut to remove
@@ -84,11 +85,11 @@ def chop_record(
     # First, convert slices into a more useable format, where they specify the
     # regions to be kept, instead of removed
     # Subtract 1 to account for zero-indexing used in python
-    all_slices = [position for s in slices for position in s]
+    all_slices = [position for s in slices_to_rc for position in s]
     all_slices.insert(0, 0)
     all_slices.append(len(input_record.seq) + 1)
     # Instantiate slice to keep with 10bp of the complementary region,
-    slices_to_keep = [(max(0, all_slices[i] - 10), all_slices[i + 1] + 10)
+    slices_to_keep = [(max(0, all_slices[i]), all_slices[i + 1])
                       for i in range(0, len(all_slices), 2)]
     # Instantiate list
     records = []
@@ -97,11 +98,13 @@ def chop_record(
     for s in slices_to_keep:
         working_record = input_record[s[0]:s[1]]
         if len(working_record.seq) >= probe_length:
-            if '[' in working_record.description:
-                working_record.description = (working_record.description +
-                                              f'[{s[0]}:{s[1]}]')
-            else:
-                working_record.description = f'[{s[0]}:{s[1]}]'
+            working_record.id = (working_record.id +f'_[{s[0]}:{s[1]}]')
+            records.append(working_record)
+    for s in slices_to_rc:
+        working_record = input_record[s[0]:s[1]]
+        if len(working_record.seq) >= probe_length:
+            working_record.id = (working_record.id +f'_[{s[0]}:{s[1]}]')
+            working_record.seq = working_record.seq.reverse_complement()
             records.append(working_record)
     
     return records
@@ -169,31 +172,27 @@ def remove_complementary_targets(
         outfmt = f'6 {" ".join(header)}'
         command = shlex.split(
             f'blastn -outfmt "{outfmt}" -num_threads {num_threads} '
-            f'-db {database}')
+            f'-db {database} -strand minus')
         blast_output = subprocess.run(command, text = True, input = str_fasta,
                                       capture_output = True).stdout
         self_blast_df = pd.read_csv(StringIO(blast_output), sep = '\t',
                                     names = header)
         # Pull out the sequence id with the most hits
-        working_df = self_blast_df.loc[
-            (self_blast_df['qseqid'] != self_blast_df['sseqid'])
-            & (self_blast_df['sstrand'] == 'minus')
-            & (self_blast_df['nident'] >= 30)]
+        working_df = self_blast_df.loc[self_blast_df['nident'] >= 30]
         # If there are no more complementary hits, break the cycle and write
         # the fasta for later input
         if working_df.empty:
             SeqIO.write(input_fasta, f'{prefix}_input_no_comp.fna', 'fasta')
             break
 
-        top_hit = working_df['sseqid'].mode().squeeze()
+        top_hit = working_df['qseqid'].mode().squeeze()
         if type(top_hit) == pd.Series:
             top_hit = top_hit.sort_values(ascending = False)[0]
-        top_hit_df = working_df.loc[working_df['sseqid'] == top_hit]
+        top_hit_df = working_df.loc[working_df['qseqid'] == top_hit]
 
         slice_dict = defaultdict(set)
-        for t in top_hit_df[['qseqid', 'qstart', 'qend']].itertuples():
-            slice_dict[t[1]].add((t[2], t[3]))
-        
+        for t in top_hit_df[['sseqid', 'sstart', 'send']].itertuples():
+            slice_dict[t[1]].add((min(t[2], t[3]), max(t[2], t[3])))
         input_fasta = cut_seqs(
             input_fasta = input_fasta,
             slice_dict = slice_dict,
@@ -216,8 +215,8 @@ def make_probes(
     80bp probes'''
     all_probes = set()
     for record in SeqIO.parse(design_fasta, 'fasta'):
-        # Instantiate string representation of the sequence
-        sequence = record.seq
+        # Instantiate uppercase string representation of the sequence
+        sequence = record.seq.upper()
         # For every start position separated by step length up to the length
         # of the target - probe_length (doesn't add probes < probe_len) + 1
         # (accounts for exclusive terminal slice) add the probeseq starting at
@@ -252,9 +251,9 @@ def basic_filter(
     probe_set: set,
     tm_low: int
 ) -> set:
-    '''Filter probeset based on having a metling temperature >= tm_low'''
+    '''Filter probeset based on having a melting temperature >= tm_low'''
     prog = re.compile(r'[^ATGC]')
-                 # Filter out ambiguous bases and probes with too low a Tm
+    # Filter out ambiguous bases and probes with too low a Tm
     filtered_probes = {
         probe for probe in probe_set if not prog.search(str(probe))
         and mt.Tm_NN(probe, nn_table = mt.R_DNA_NN1) > tm_low}
@@ -912,7 +911,7 @@ def parse_probes(
     probe_info.to_csv(f'{prefix}_probe_info.csv', index = False)
 
 
-def _get_probe_names(input_fasta: str) -> set:
+def get_probe_names(input_fasta: str) -> set:
     '''Extract probe names from a fasta file, return them as a set'''
     with open(input_fasta) as infile:
         probe_names = set([
@@ -930,7 +929,7 @@ def find_remaining_ID(
     '''Determines the max remaining number of identities between probes
     in the final probeset'''
     #Find the max number of identities
-    probe_names = _get_probe_names(probe_set)
+    probe_names = get_probe_names(probe_set)
     # Read in the self_blast tsv
     self_blast_df = pd.read_csv(self_blast, sep = '\t', names = header)
     # Determine the max remaining number of identities in the probeset
@@ -948,19 +947,18 @@ def find_remaining_ID(
 def count_probes(prefix: str) -> None:
     '''Records the number of probes after each filter'''
     # Find fastas
-    fasta_list = [file for file in os.listdir() if file.endswith('.fna')]
+    fasta_list = glob.glob(f'{prefix}*.fna')
     # Instantiate summary df
     col_names = ['filter', 'count']
     count_df = pd.DataFrame(columns = col_names)
     
     # Count the number of probes in each fasta
     for fasta in fasta_list:
-        filter = fasta.split('_')[0]
         count = 0
         records = SeqIO.parse(fasta, 'fasta')
-        for record in records:
+        for _ in records:
             count += 1
-        info_list = [filter, count]
+        info_list = [fasta, count]
         count_df.loc[len(count_df)] = info_list
 
     # Write summary file
@@ -1258,6 +1256,7 @@ def main():
             probe_len = probe_len,
             step = step
         )
+        write_to_file(probes, f'{prefix}_no_filter.fna')
         print(f'{len(probes)} probes constructed during naive tiling')
         no_comp_probes = complementarity_filter(probes)
         print(f'{len(no_comp_probes)} probes remaining after removing '
